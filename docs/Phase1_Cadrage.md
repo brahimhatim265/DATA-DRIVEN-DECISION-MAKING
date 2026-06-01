@@ -19,7 +19,7 @@ Sur une marketplace comme Olist, le churn classique est difficile à mesurer car
 
 ### A. KPI Business 
 *   **Taux d'Insatisfaction Critique (Churn Proxy) :** Pourcentage de commandes avec retard + note ≤ 2.
-*   **Objectif :** Réduction de ce taux de 15% via le système d'alerte.
+*   **Objectif :Réduction de ce taux de **15% à 25%** via le système d'alerte.
 
 ### B. KPI Opérationnel (La fiabilité technique)
 *   **F1-Score du modèle prédictif :** Cible ≥ 0.75.
