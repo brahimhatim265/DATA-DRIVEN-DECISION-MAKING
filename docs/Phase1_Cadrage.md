@@ -30,6 +30,7 @@ Sur une marketplace comme Olist, le churn classique est difficile à mesurer car
 *   **Average Delivery Gap :** Écart moyen (en jours) entre la date de livraison estimée et la date réelle.
 
 ## 5. KPI Tree (Arbre Hiérarchique)
+```mermaid
 graph TD
     %% Couleurs
     classDef strategique fill:#f9f,stroke:#333,stroke-width:2px;
@@ -56,6 +57,7 @@ graph TD
     Gap --> Algo[Algorithme de Prédiction des Retards<br/>RF, XGBoost, LogReg] :::technique
     F1 --> Algo
     NPS --> Algo
+    ---
 ## 6. Business Case & ROI Net Estimé (Détail financier)
 
 *   **Hypothèses de base :**
