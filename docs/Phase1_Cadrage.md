@@ -31,33 +31,33 @@ Sur une marketplace comme Olist, le churn classique est difficile à mesurer car
 
 ## 5. KPI Tree (Arbre Hiérarchique)
 ```mermaid
-graph TD
-    %% Couleurs
-    classDef strategique fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef business fill:#dfd,stroke:#333,stroke-width:1px;
-    classDef couts fill:#fdd,stroke:#333,stroke-width:1px;
-    classDef operationnel fill:#ddf,stroke:#333,stroke-width:1px;
-    classDef technique fill:#eee,stroke:#333,stroke-width:1px;
+flowchart TD
+    classDef strategique fill:#f9f,stroke:#333,stroke-width:2px
+    classDef business fill:#dfd,stroke:#333,stroke-width:1px
+    classDef couts fill:#fdd,stroke:#333,stroke-width:1px
+    classDef operationnel fill:#ddf,stroke:#333,stroke-width:1px
+    classDef technique fill:#eee,stroke:#333,stroke-width:1px
 
-    %% Arbre
-    Top(Profit Net Annuel<br/>Objectif Stratégique) :::strategique
+    Top("Profit Net Annuel<br/>Objectif Stratégique"):::strategique
 
-    Top --> Rev[(+) Revenus Sauvés<br/>Clients retenus x Panier moyen] :::business
-    Top --> Cost[(-) Coût des Compensations<br/>Nb coupons x Valeur coupon] :::couts
+    Top --> Rev("Revenus Sauvés<br/>Clients retenus x Panier moyen"):::business
+    Top --> Cost("Coût des Compensations<br/>Nb coupons x Valeur coupon"):::couts
 
-    Rev --> Churn[Taux de Churn Proxy<br/>Note <= 2 + Retard] :::business
+    Rev --> Churn("Taux de Churn Proxy<br/>Note faible + Retard"):::business
     
-    Cost --> FP[Taux de Faux Positifs<br/>Coupons envoyés inutilement] :::couts
-    Cost --> FN[Faux Négatifs<br/>Retards non détectés] :::couts
+    Cost --> FP("Taux de Faux Positifs<br/>Coupons envoyés inutilement"):::couts
+    Cost --> FN("Faux Négatifs<br/>Retards non détectés"):::couts
 
-    Churn --> Gap[Delivery Gap<br/>Date réelle - Date promise] :::operationnel
-    FP --> F1[F1-Score du Modèle<br/>Cible >= 0.75] :::operationnel
-    FN --> NPS[NPS / Satisfaction<br/>Avis clients 1-5] :::operationnel
+    Churn --> Gap("Delivery Gap<br/>Date réelle - Date promise"):::operationnel
+    FP --> F1("F1-Score du Modèle<br/>Cible >= 0.75"):::operationnel
+    FN --> NPS("NPS / Satisfaction<br/>Avis clients 1-5"):::operationnel
 
-    Gap --> Algo[Algorithme de Prédiction des Retards<br/>RF, XGBoost, LogReg] :::technique
+    Gap --> Algo["Algorithme de Prédiction des Retards<br/>RF, XGBoost, LogReg"]:::technique
     F1 --> Algo
     NPS --> Algo
-    ---
+
+```
+    
 ## 6. Business Case & ROI Net Estimé (Détail financier)
 
 *   **Hypothèses de base :**
