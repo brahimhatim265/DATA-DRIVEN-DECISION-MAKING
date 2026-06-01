@@ -7,7 +7,7 @@
 ## Objectif du Projet
 Optimiser la rétention client de la plateforme Olist en prédisant les retards de livraison et en automatisant des décisions marketing proactives.
 
-## Installation & Utilisation
+## 🚀 Installation & Utilisation
 1. Cloner le dépôt : `git clone [URL_DU_REPO]`
 2. Créer un environnement virtuel : `python -m venv venv`
 3. Activer l'environnement : `venv\Scripts\activate`
