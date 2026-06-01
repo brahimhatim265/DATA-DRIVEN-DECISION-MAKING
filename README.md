@@ -18,3 +18,9 @@ Optimiser la rétention client de la plateforme Olist en prédisant les retards 
 - `/notebooks`: Analyses exploratoires et modèles
 - `/docs`: Business Case, Plan A/B Test et KPI Tree
 - `/src`: Code source du Dashboard Streamlit
+
+## Acquisition des Données
+Pour faire fonctionner ce projet, vous devez :
+1. Télécharger le dataset Olist sur Kaggle : [Lien Kaggle Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+2. Télécharger les données IBGE : [Lien Kaggle IBGE](https://www.kaggle.com/datasets/gabrielrs3/economy-and-population-of-cities-in-brazil-ibge) 
+3. Extraire et placer tous les fichiers `.csv` et `.xlsx` dans le dossier `data/raw/`.
