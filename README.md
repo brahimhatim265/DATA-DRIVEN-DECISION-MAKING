@@ -32,6 +32,7 @@ graph TD
 - data/processed/predictions.csv : Export du modèle contenant les probabilités de risque et les facteurs explicatifs.
 - data/processed/master.csv : Base de données fusionnée et nettoyée utilisée par le dashboard.
 - docs/Phase1_Cadrage.md : Cadrage stratégique, définition des KPIs et Arbre de décision (KPI Tree).
+- docs/AB_Test_Plan.md : Protocole expérimental complet (Z-test, puissance statistique) pour valider l'impact causal de l'intervention.
 - requirements.txt : Liste des dépendances Python pour la reproductibilité.
 
  ## Acquisition des Données
