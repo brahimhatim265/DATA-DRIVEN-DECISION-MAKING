@@ -49,24 +49,24 @@ flowchart LR
 
 ## 5. Taille d'échantillon (calcul de puissance)
 
-**Hypothèses du calcul** :
-- Taux de churn proxy baseline (groupe contrôle) parmi les commandes high-risk : **30 %** (estimation à recalibrer une fois les métriques du modèle gagnant disponibles).
-- Effet minimum détectable (MDE) : **20 % relatif** (centre de la cible 15–25 %) — on cherche à détecter une baisse de 30 % → 24 %.
+**Hypothèses du calcul** (calibrées sur les vraies prédictions du modèle, fichier `data/processed/predictions.csv`) :
+- Taux de churn proxy baseline (groupe contrôle) parmi les commandes high-risk au seuil 0,67 : **51,3 %**. Mesuré empiriquement sur le test set : 51,3 % des commandes flaguées high-risk présentent à la fois un retard et une note ≤ 2, ce qui valide la pertinence du ciblage du modèle.
+- Effet minimum détectable (MDE) : **20 % relatif** (centre de la cible 15–25 %) — on cherche à détecter une baisse de 51,3 % → 41,0 % (soit −10,3 points).
 - α = 0,05 (bilatéral), puissance = 80 %.
 - Test : z-test à deux proportions.
 
 **Résultat** :
 
-$$n_{\text{par groupe}} = \frac{(z_{\alpha/2} + z_{\beta})^2 \cdot (p_1(1-p_1) + p_2(1-p_2))}{(p_1 - p_2)^2} \approx 855$$
+$$n_{\text{par groupe}} = \frac{(z_{\alpha/2} + z_{\beta})^2 \cdot (p_1(1-p_1) + p_2(1-p_2))}{(p_1 - p_2)^2} \approx 364$$
 
-Soit **environ 1 700 commandes au total**. On retient une cible opérationnelle de **1 000 par groupe (~2 000 au total)** pour absorber les pertes (commandes annulées, données manquantes).
+Soit **environ 728 commandes au total**. On retient une cible opérationnelle de **500 par groupe (~1 000 au total)** pour absorber les pertes (commandes annulées, données manquantes). C'est sensiblement moins que l'estimation initiale (qui supposait un baseline de 30 %) : un baseline réel plus élevé rend l'effet plus facile à détecter, donc moins d'échantillons nécessaires.
 
 ## 6. Durée du test
 
-Avec un volume Olist d'environ 100 000 commandes/an (~275/jour) et une proportion estimée de 10 à 15 % de commandes high-risk au seuil 0,67, on a environ **30 à 40 commandes éligibles par jour**. Pour atteindre 2 000 randomisations :
+Avec un volume Olist d'environ 100 000 commandes/an (~275/jour) et le **taux réel de high-risk mesuré à 3,3 %** (sur le test set, au seuil 0,67), on a environ **9 commandes éligibles par jour**. Pour atteindre 1 000 randomisations :
 
-- **Durée estimée : 7 à 8 semaines.**
-- Cette estimation sera recalibrée dès que nous aurons le vrai taux de high-risk sur les données réelles.
+- **Durée estimée : ~111 jours, soit environ 16 semaines (4 mois).**
+- Le pool high-risk est plus sparse qu'estimé initialement (10–15 %) car le modèle est très conservateur au seuil 0,67. Pour accélérer le test, deux leviers possibles : baisser le seuil à 0,5 (~6 % du volume, mais on perd en précision), ou élargir géographiquement le test.
 
 ## 7. Règle de décision
 
@@ -84,8 +84,8 @@ Avec un volume Olist d'environ 100 000 commandes/an (~275/jour) et une proportio
 
 ## 9. Prochaines étapes
 
-1. Finaliser les métriques (Precision / Recall / F1) du modèle gagnant et le taux réel de commandes high-risk.
-2. Recalibrer la baseline de churn proxy et la taille d'échantillon.
+1. ✅ ~~Finaliser les métriques (Precision / Recall / F1) du modèle gagnant et le taux réel de commandes high-risk.~~ **Fait** : AUC = 0,846, F1 = 0,46, Précision Top 5 % = 56,2 %, taux high-risk = 3,3 %.
+2. ✅ ~~Recalibrer la baseline de churn proxy et la taille d'échantillon.~~ **Fait** : baseline mesurée à 51,3 %, taille d'échantillon recalculée à 364 par groupe.
 3. Implémenter le code de randomisation dans `src/randomizer.py` (hash déterministe d'`order_id`).
 4. Coordonner avec l'équipe Marketing pour le canal d'envoi du coupon.
 5. Pré-enregistrer le plan d'analyse, puis lancer le test.

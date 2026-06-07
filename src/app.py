@@ -28,11 +28,31 @@ SAVE_RATE = 0.20     # part des clients à risque sauvés par l'intervention (Ph
 
 # ---- Traduction des facteurs de risque (issus de SHAP) en libellés lisibles ----
 LIBELLES_FACTEURS = {
-    "long_distance": "Longue distance",
-    "near_holiday": "Proximité d'un jour férié",
-    "low_gdp_region": "Région à faible PIB",
-    "heavy_freight": "Frais de port élevés",
-    "bulky_category": "Catégorie volumineuse",
+    "route_late_rate": "Taux de retard historique de la route",
+    "cluster_id": "Groupe géographique",
+    "delivery_buffer_days": "Délai promis (jours)",
+    "month": "Mois de l'année",
+    "PopEstimada_2018": "Population de l'état",
+    "is_local": "Livraison locale (même état)",
+    "product_weight_g": "Poids du produit",
+    "qty_items": "Nombre d'articles",
+    "days_allowed_to_ship": "Délai accordé au vendeur",
+    "freight_value": "Frais de port",
+    "product_volume_cm3": "Volume du produit",
+    "logistics_complexity": "Complexité logistique",
+    "price": "Prix du produit",
+    "is_holiday": "Proximité d'un jour férié",
+    "distance_km": "Distance client-vendeur (km)",
+    "Pib_2014": "PIB de l'état",
+    "day_of_week": "Jour de la semaine",
+    "seller_historical_late_rate": "Taux de retard historique du vendeur",
+}
+
+# Libellés des segments K-Means de Brahim
+LIBELLES_SEGMENTS = {
+    0: "Clients standard",
+    1: "Clients VIP",
+    2: "Clients insatisfaits",
 }
 
 DATA_DIR = os.path.join("data", "processed")
@@ -51,8 +71,13 @@ def load_data():
     if os.path.exists(master_path):
         master = pd.read_csv(master_path)
         keep = [c for c in ["order_id", "price", "freight_value",
-                            "is_near_holiday", "is_late"] if c in master.columns]
+                            "is_near_holiday", "is_holiday", "is_late",
+                            "cluster_id"]
+                if c in master.columns]
         df = df.merge(master[keep], on="order_id", how="left")
+        # Brahim's master uses 'is_holiday'; the dashboard expects 'is_near_holiday'.
+        if "is_holiday" in df.columns and "is_near_holiday" not in df.columns:
+            df = df.rename(columns={"is_holiday": "is_near_holiday"})
     if "price" not in df.columns:
         df["price"] = LTV  # valeur de secours si master absent
     return df
@@ -72,9 +97,23 @@ threshold = st.sidebar.slider("Seuil de risque élevé (probabilité de retard)"
                               0.1, 0.9, 0.7, 0.05)
 all_states = sorted(df["customer_state"].unique())
 states = st.sidebar.multiselect("Filtrer par état", all_states, default=all_states)
+
+# Filtre par segment client (basé sur le clustering K-Means de Brahim)
+if "cluster_id" in df.columns:
+    seg_options = sorted(df["cluster_id"].dropna().astype(int).unique())
+    segments_selected = st.sidebar.multiselect(
+        "Filtrer par segment client",
+        options=seg_options,
+        default=seg_options,
+        format_func=lambda x: LIBELLES_SEGMENTS.get(int(x), f"Segment {x}"))
+else:
+    segments_selected = None
+
 st.sidebar.caption("Source : data/processed/predictions.csv")
 
 view = df[df["customer_state"].isin(states)].copy()
+if segments_selected is not None:
+    view = view[view["cluster_id"].isin(segments_selected)]
 view["high_risk"] = view["delay_risk_proba"] >= threshold
 
 # Calculs décisionnels partagés -- mêmes hypothèses que la Phase 1,
@@ -126,12 +165,41 @@ if profile == "Direction":
                                    "revenu_a_risque": "Revenu à risque (R$)"}),
                     use_container_width=True)
 
+    # Nouvelle vue : segmentation client (basée sur le clustering K-Means de Brahim)
+    if "cluster_id" in view.columns:
+        st.subheader("Vue 3 — Où le risque se concentre par segment client")
+        st.caption("Les retards touchent-ils plutôt les VIP, les standards ou les insatisfaits ?")
+        seg = view.dropna(subset=["cluster_id"]).copy()
+        seg["cluster_id"] = seg["cluster_id"].astype(int)
+        seg_stats = seg.groupby("cluster_id").agg(
+            commandes=("order_id", "count"),
+            risque_moyen=("delay_risk_proba", "mean"),
+        ).reset_index()
+        seg_stats["Segment"] = seg_stats["cluster_id"].map(
+            lambda x: LIBELLES_SEGMENTS.get(int(x), f"Segment {x}"))
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.plotly_chart(
+                px.bar(seg_stats, x="Segment", y="commandes",
+                       color="risque_moyen", color_continuous_scale="Reds",
+                       labels={"commandes": "Volume", "risque_moyen": "Risque moyen"},
+                       title="Volume de commandes par segment"),
+                use_container_width=True)
+        with col2:
+            st.plotly_chart(
+                px.bar(seg_stats, x="Segment", y="risque_moyen",
+                       color="risque_moyen", color_continuous_scale="Reds",
+                       labels={"risque_moyen": "Risque moyen"},
+                       title="Risque moyen par segment"),
+                use_container_width=True)
+
 # ============================ OPÉRATIONS ============================
 elif profile == "Opérations":
     st.title("Vue Opérations")
     st.caption("Quels itinéraires, régions et catégories de produits causent les retards ?")
 
-    st.subheader("Vue 3 — États les plus risqués (où recruter des transporteurs en priorité)")
+    st.subheader("Vue 4 — États les plus risqués (où recruter des transporteurs en priorité)")
     g = by_state_risk().head(10)
     st.plotly_chart(
         px.bar(g, x="risque_moyen", y="customer_state", orientation="h",
@@ -139,7 +207,7 @@ elif profile == "Opérations":
                labels={"risque_moyen": "Risque moyen", "customer_state": "État"}),
         use_container_width=True)
 
-    st.subheader("Vue 4 — Risque de retard par catégorie de produit")
+    st.subheader("Vue 5 — Risque de retard par catégorie de produit")
     gc = view.groupby("product_category")["delay_risk_proba"].mean() \
         .reset_index().sort_values("delay_risk_proba", ascending=False)
     st.plotly_chart(px.bar(gc, x="product_category", y="delay_risk_proba",
@@ -148,7 +216,7 @@ elif profile == "Opérations":
                     use_container_width=True)
 
     if "is_near_holiday" in view.columns:
-        st.subheader("Vue 5 — L'effet des jours fériés")
+        st.subheader("Vue 6 — L'effet des jours fériés")
         gh = view.groupby("is_near_holiday")["delay_risk_proba"].mean().reset_index()
         gh["is_near_holiday"] = gh["is_near_holiday"].map(
             {0: "Période normale", 1: "Près d'un férié"})
