@@ -22,7 +22,7 @@ graph TD
 ## Structure du Projet
 - `/data`: Données brutes et transformées (non suivies par Git)
 - `/notebooks`: Analyses exploratoires et modèles
-- `/docs`: Business Case, Plan A/B Test et KPI Tree
+- `/docs`: Business Case, Data Story, Plan A/B Test et KPI Tree
 - `/src`: Code source du Dashboard Streamlit
 
 ## Description des Fichiers et Structure
